@@ -1,4 +1,6 @@
-#[derive(Clone, Copy)]
+#[macro_use] extern crate serde_derive;
+
+#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct Vector3d<T> {
     pub x: T,
     pub y: T,
