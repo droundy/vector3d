@@ -1,9 +1,20 @@
+#![cfg_attr(feature = "strict", deny(warnings))]
+#![cfg_attr(feature = "strict", deny(missing_docs))]
+
+//! This crates provides a single structure `Vector3d`, which is a
+//! generic three-dimensional vector type, which should work well with
+//! `dimensioned`.
+
 #[macro_use] extern crate serde_derive;
 
+/// A 3D vector.
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct Vector3d<T> {
+    /// The x component of the vector.
     pub x: T,
+    /// The y component of the vector.
     pub y: T,
+    /// The z component of the vector.
     pub z: T,
 }
 
@@ -11,6 +22,11 @@ impl<T> Vector3d<T> {
     /// Create a new `Vector3d`.
     pub fn new(x: T, y: T, z: T) -> Vector3d<T> {
         Vector3d { x: x, y: y, z: z }
+    }
+    /// The dot product of two vectors.  Note that we assume that the
+    /// vector components have commutative multiplication.
+    pub fn dot<U: Mul<T, Output=X>, X: Add<Output=X>>(self, rhs: Vector3d<U>) -> X {
+        rhs.x*self.x + rhs.y*self.y + rhs.z*self.z
     }
 }
 
@@ -54,9 +70,7 @@ impl<T> Vector3d<T> {
 /// practical gain.
 
 use std::ops::Add;
-impl<T> Add<Vector3d<T>> for Vector3d<T>
-    where T: Add<T, Output = T>
-{
+impl<T: Add<T, Output = T>> Add<Vector3d<T>> for Vector3d<T> {
     type Output = Vector3d<T>;
     fn add(self, rhs: Vector3d<T>) -> Self::Output {
         Vector3d::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
@@ -64,9 +78,7 @@ impl<T> Add<Vector3d<T>> for Vector3d<T>
 }
 
 use std::ops::Sub;
-impl<T> Sub<Vector3d<T>> for Vector3d<T>
-    where T: Sub<T, Output = T>
-{
+impl<T: Sub<T, Output = T>> Sub<Vector3d<T>> for Vector3d<T> {
     type Output = Vector3d<T>;
     fn sub(self, rhs: Vector3d<T>) -> Self::Output {
         Vector3d::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
@@ -74,9 +86,7 @@ impl<T> Sub<Vector3d<T>> for Vector3d<T>
 }
 
 use std::ops::Neg;
-impl<T> Neg for Vector3d<T>
-    where T: Neg<Output = T>
-{
+impl<T: Neg<Output = T>> Neg for Vector3d<T> {
     type Output = Vector3d<T>;
     fn neg(self) -> Self::Output {
         Vector3d::new(-self.x, -self.y, -self.z)
@@ -99,115 +109,24 @@ impl<S: Clone, X, T: Div<S, Output=X>> Div<S> for Vector3d<T> {
     }
 }
 
-/// The dot product is the first of our custom operations. We create a
-/// trait with an associated type.
-
-pub trait Dot<Rhs = Self> {
-    type Output;
-    fn dot(self, rhs: Rhs) -> Self::Output;
-}
-
-/// And then we implement it. Again, we are assuming that our vectors
-/// are over some type that does not change with addition. If we
-/// weren't making that assumption, this would get a good deal
-/// messier.
-
-impl<U, X, T> Dot<Vector3d<U>> for Vector3d<T>
-    where X: Add<Output=X>,
-          T: Mul<U, Output=X>
-{
-    type Output = X;
-    fn dot(self, rhs: Vector3d<U>) -> Self::Output {
-        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+impl<T: Clone> Vector3d<T> {
+    /// The cross product of two vectors.  Note that we assume that
+    /// the components of both vector types have commutative
+    /// multiplication.
+    pub fn cross<U: Clone + Mul<T, Output=X>,
+             X: Add<Output=X> + Sub<Output=X>>(self, rhs: Vector3d<U>) -> Vector3d<X> {
+        Vector3d::new(rhs.z.clone()*self.y.clone() - rhs.y.clone()*self.z.clone(),
+                      rhs.x.clone()*self.z.clone() - rhs.z*self.x.clone(),
+                      rhs.y*self.x - rhs.x.clone()*self.y.clone())
     }
 }
 
-/// The cross product follows a similar pattern.
-
-pub trait Cross<Rhs = Self> {
-    type Output;
-    fn cross(self, rhs: Rhs) -> Self::Output;
-}
-
-impl<T, U, X> Cross<Vector3d<U>> for Vector3d<T>
-    where T: Mul<U, Output=X> + Clone,
-          X: Add<Output=X> + Sub<Output=X>,
-          U: Clone
-{
-    type Output = Vector3d<X>;
-    fn cross(self, rhs: Vector3d<U>) -> Self::Output {
-        Vector3d::new(self.y.clone() * rhs.z.clone() - self.z.clone() * rhs.y.clone(),
-                      self.z.clone() * rhs.x.clone() - self.x.clone() * rhs.z,
-                      self.x * rhs.y - self.y.clone() * rhs.x.clone())
-    }
-}
-
-/// For the norm-squared, we can just call out to `Dot` that we've
-/// already defined.
-
-pub trait Norm2 {
-    type Output;
-    fn norm2(self) -> Self::Output;
-}
-
-impl<T, X> Norm2 for Vector3d<T>
-    where T: Clone + Mul<T, Output=X>,
-          X: Add<Output=X>
-{
-    type Output = X;
-    fn norm2(self) -> Self::Output {
+impl<T: Clone + Mul<T, Output=X>, X: Add<Output=X>> Vector3d<T> {
+    /// The square of the vector.
+    pub fn norm2(self) -> X {
         self.clone().dot(self)
     }
 }
-
-/// Implementing `Norm` is a bit trickier. For this, we need to take a
-/// square root. We have a couple options.
-///
-/// 1. We could just implement it for primitives and leave it to users
-///    to make a norm for anything else they want.
-///
-/// 2. We could use the `Float` trait from the num crate. This is more
-///    flexible, but still leaves out dimensioned.
-///
-/// 3. We could use the `Sqrt` trait from dimensioned. This gives us
-///    support for dimensioned and primitives, but requires our vector
-///    library be aware of dimensioned.
-///
-/// We will go with option 3.
-
-// pub trait Norm {
-//     type Output;
-//     fn norm(self) -> Self::Output;
-// }
-
-// use dimensioned::Sqrt;
-// impl<T> Norm for Vector3d<T>
-//     where Vector3d<T>: Norm2,
-//           <Vector3d<T> as Norm2>::Output: Sqrt
-// {
-//     type Output = <<Vector3d<T> as Norm2>::Output as Sqrt>::Output;
-//     fn norm(self) -> Self::Output {
-//         self.norm2().sqrt()
-//     }
-// }
-
-/// Since we have a norm function and scalar division, we can produce
-/// a normalized version of a vector.
-
-// pub trait Normalized {
-//     type Output;
-//     fn normalized(self) -> Self::Output;
-// }
-
-// impl<T> Normalized for Vector3d<T>
-//     where Vector3d<T>: Clone + Norm + Div<<Vector3d<T> as Norm>::Output>
-// {
-//     type Output = Quot<Self, <Self as Norm>::Output>;
-//     fn normalized(self) -> Self::Output {
-//         let n = self.clone().norm();
-//         self / n
-//     }
-// }
 
 use std::ops::Index;
 impl<T> Index<usize> for Vector3d<T> {
