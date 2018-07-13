@@ -164,9 +164,7 @@ impl<T> IndexMut<usize> for Vector3d<T> {
 }
 
 use std::fmt;
-impl<T> fmt::Display for Vector3d<T>
-    where T: fmt::Display
-{
+impl<T: fmd::Display> fmt::Display for Vector3d<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {}, {})", self.x, self.y, self.z)
     }
