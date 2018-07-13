@@ -1,5 +1,13 @@
+// Copyright 2018 David Roundy <roundyd@physics.oregonstate.edu>
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
 #![cfg_attr(feature = "strict", deny(warnings))]
-#![cfg_attr(feature = "strict", deny(missing_docs))]
+#![deny(missing_docs)]
 
 //! This crates provides a single structure `Vector3d`, which is a
 //! generic three-dimensional vector type, which should work well with
