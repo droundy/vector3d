@@ -6,9 +6,11 @@
 //! `dimensioned`.
 
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate clapme;
+use clapme::ClapMe;
 
 /// A 3D vector.
-#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, ClapMe)]
 pub struct Vector3d<T> {
     /// The x component of the vector.
     pub x: T,
