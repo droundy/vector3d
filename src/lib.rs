@@ -15,7 +15,6 @@
 
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate clapme;
-use clapme::ClapMe;
 
 /// A 3D vector.
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, ClapMe)]
