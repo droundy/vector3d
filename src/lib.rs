@@ -15,7 +15,8 @@
 
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate clapme;
-use clapme::ClapMe;
+
+use std::fmt::Alignment;
 
 /// A 3D vector.
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, ClapMe)]
@@ -166,6 +167,43 @@ impl<T> IndexMut<usize> for Vector3d<T> {
 use std::fmt;
 impl<T: fmt::Display> fmt::Display for Vector3d<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {}, {})", self.x, self.y, self.z)
+        if let Some(decimals) = f.precision() {
+            let s = format!("({:.decimals$}, {:.decimals$}, {:.decimals$})",
+                            self.x, self.y, self.z, decimals=decimals);
+            if let Some(width) = f.width() {
+                match f.align().unwrap_or(Alignment::Left) {
+                    Alignment::Left =>
+                        write!(f, "{:<width$}", s, width=width),
+                    Alignment::Right =>
+                        write!(f, "{:>width$}", s, width=width),
+                    Alignment::Center =>
+                        write!(f, "{:^width$}", s, width=width),
+                }
+            } else {
+                f.write_str(&s)
+            }
+        } else {
+            let string = format!("({}, {}, {})", self.x, self.y, self.z);
+            f.pad(&string)
+        }
     }
+}
+
+#[test]
+fn padding_works() {
+    let v = Vector3d::new(0,0,0);
+    assert_eq!(&format!("{}", v), "(0, 0, 0)");
+    assert_eq!(&format!("{:10}", v), "(0, 0, 0) ");
+    assert_eq!(&format!("{:<10}", v), "(0, 0, 0) ");
+    assert_eq!(&format!("{:>10}", v), " (0, 0, 0)");
+    assert_eq!(&format!("{:^11}", v), " (0, 0, 0) ");
+    assert_eq!(&format!("{:>11}", v), "  (0, 0, 0)");
+
+    let v = Vector3d::new(0.,0.,0.);
+    assert_eq!(&format!("{}", v), "(0, 0, 0)");
+    assert_eq!(&format!("{:.2}", v), "(0.00, 0.00, 0.00)");
+    assert_eq!(&format!("{:19.2}", v), "(0.00, 0.00, 0.00) ");
+    assert_eq!(&format!("{:<19.2}", v), "(0.00, 0.00, 0.00) ");
+    assert_eq!(&format!("{:>19.2}", v), " (0.00, 0.00, 0.00)");
+    assert_eq!(&format!("{:^20.2}", v), " (0.00, 0.00, 0.00) ");
 }
