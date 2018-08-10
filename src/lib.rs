@@ -135,7 +135,7 @@ impl<T: Clone> Vector3d<T> {
 impl<T: Clone + Mul<T, Output=X>, X: Add<Output=X>> Vector3d<T> {
     /// The square of the vector.
     pub fn norm2(self) -> X {
-        self.clone().dot(self)
+        self.x.clone()*self.x + self.y.clone()*self.y + self.z.clone()*self.z
     }
 }
 
