@@ -19,7 +19,7 @@
 use std::fmt::Alignment;
 
 /// A 3D vector.
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, ClapMe)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, ClapMe, Default)]
 pub struct Vector3d<T> {
     /// The x component of the vector.
     pub x: T,
