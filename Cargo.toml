@@ -1,6 +1,6 @@
 [package]
 name = "vector3d"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["David Roundy <roundyd@physics.oregonstate.edu>"]
 description = "A simple 3D vector type."
 license = "Apache-2.0/MIT"

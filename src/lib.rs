@@ -96,6 +96,42 @@ impl<T: Sub<T, Output = T>> Sub<Vector3d<T>> for Vector3d<T> {
     }
 }
 
+use std::iter::Sum;
+impl<T: Add<T, Output = T> + Sum<T>> Sum<Vector3d<T>> for Vector3d<T> {
+    fn sum<I: Iterator<Item=Vector3d<T>>>(mut iter: I) -> Vector3d<T> {
+        if let Some(first) = iter.next() {
+            iter.fold(first, |a, b| a + b)
+        } else {
+            // There has got to be a more elegant way to do this, but
+            // if so I don't see it.
+            let x: Option<T> = None;
+            let zero_x: T = x.into_iter().sum();
+            let y: Option<T> = None;
+            let zero_y: T = y.into_iter().sum();
+            let z: Option<T> = None;
+            let zero_z: T = z.into_iter().sum();
+            Vector3d::new(zero_x, zero_y, zero_z)
+        }
+    }
+}
+impl<'a, T: 'a + Add<T, Output = T> + Sum<T> + Clone> Sum<&'a Vector3d<T>> for Vector3d<T> {
+    fn sum<I: Iterator<Item=&'a Vector3d<T>>>(iter: I) -> Vector3d<T> {
+        iter.cloned().sum()
+    }
+}
+
+#[test]
+fn sum_f64() {
+    let x: f64 = [0.0, 0.0, 0.1].iter().cloned().sum();
+    assert_eq!(x, 0.1f64);
+    let total: Vector3d<f64> = [Vector3d::new(0.0, 0.0, 0.1),
+                                Vector3d::new(0.0, 0.2, 0.0)].iter().cloned().sum();
+    assert_eq!(total, Vector3d::new(0.0, 0.2, 0.1));
+    let total: Vector3d<f64> = [Vector3d::new(0.0, 0.0, 0.1),
+                                Vector3d::new(0.0, 0.2, 0.0)].iter().sum();
+    assert_eq!(total, Vector3d::new(0.0, 0.2, 0.1));
+}
+
 use std::ops::Neg;
 impl<T: Neg<Output = T>> Neg for Vector3d<T> {
     type Output = Vector3d<T>;
