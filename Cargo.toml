@@ -5,13 +5,21 @@ authors = ["David Roundy <roundyd@physics.oregonstate.edu>"]
 description = "A simple 3D vector type."
 license = "Apache-2.0/MIT"
 repository = "https://github.com/droundy/vector3d"
-edition = "2015"
+edition = "2018"
 
 [dependencies]
-serde = "1.0"
-serde_derive = "1.0"
-clapme = "0.1.10"
+serde = { version = "1.0", optional = true }
+serde_derive = { version = "1.0", optional = true }
+
+clapme = { version = "0.1.10", optional = true }
+auto-args = { version = "0.2.4", optional = true }
 
 [features]
 # Treat warnings as a build error.
 strict = []
+
+default = ["serde1", "clapme"]
+
+auto_args = ["auto-args"]
+
+serde1 = ["serde", "serde_derive"]

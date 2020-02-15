@@ -1,4 +1,4 @@
-// Copyright 2018 David Roundy <roundyd@physics.oregonstate.edu>
+// Copyright 2018,2020 David Roundy <roundyd@physics.oregonstate.edu>
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -12,14 +12,25 @@
 //! This crates provides a single structure `Vector3d`, which is a
 //! generic three-dimensional vector type, which should work well with
 //! `dimensioned`.
+//!
+//! Features: serde1, auto-args, clapme
 
+
+#[cfg(feature = "serde1")]
 #[macro_use] extern crate serde_derive;
-#[macro_use] extern crate clapme;
+
+#[cfg(feature = "clapme")]
+use clapme::ClapMe;
+#[cfg(feature = "auto-args")]
+use auto_args::AutoArgs;
 
 use std::fmt::Alignment;
 
 /// A 3D vector.
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, ClapMe, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "clapme", derive(ClapMe))]
+#[cfg_attr(feature = "auto-args", derive(AutoArgs))]
 pub struct Vector3d<T> {
     /// The x component of the vector.
     pub x: T,
