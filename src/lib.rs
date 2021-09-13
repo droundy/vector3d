@@ -15,14 +15,14 @@
 //!
 //! Features: serde1, auto-args, clapme
 
-
 #[cfg(feature = "serde1")]
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 
-#[cfg(feature = "clapme")]
-use clapme::ClapMe;
 #[cfg(feature = "auto-args")]
 use auto_args::AutoArgs;
+#[cfg(feature = "clapme")]
+use clapme::ClapMe;
 
 use std::fmt::Alignment;
 
@@ -43,12 +43,12 @@ pub struct Vector3d<T> {
 impl<T> Vector3d<T> {
     /// Create a new `Vector3d`.
     pub fn new(x: T, y: T, z: T) -> Vector3d<T> {
-        Vector3d { x: x, y: y, z: z }
+        Vector3d { x, y, z }
     }
     /// The dot product of two vectors.  Note that we assume that the
     /// vector components have commutative multiplication.
-    pub fn dot<U: Mul<T, Output=X>, X: Add<Output=X>>(self, rhs: Vector3d<U>) -> X {
-        rhs.x*self.x + rhs.y*self.y + rhs.z*self.z
+    pub fn dot<U: Mul<T, Output = X>, X: Add<Output = X>>(self, rhs: Vector3d<U>) -> X {
+        rhs.x * self.x + rhs.y * self.y + rhs.z * self.z
     }
 }
 
@@ -90,7 +90,6 @@ impl<T> Vector3d<T> {
 /// change. We could be more generic, and implement them similarly to
 /// how we will do `Mul`, but that is added complication with no known
 /// practical gain.
-
 use std::ops::Add;
 impl<T: Add<T, Output = T>> Add<Vector3d<T>> for Vector3d<T> {
     type Output = Vector3d<T>;
@@ -109,7 +108,7 @@ impl<T: Sub<T, Output = T>> Sub<Vector3d<T>> for Vector3d<T> {
 
 use std::iter::Sum;
 impl<T: Add<T, Output = T> + Sum<T>> Sum<Vector3d<T>> for Vector3d<T> {
-    fn sum<I: Iterator<Item=Vector3d<T>>>(mut iter: I) -> Vector3d<T> {
+    fn sum<I: Iterator<Item = Vector3d<T>>>(mut iter: I) -> Vector3d<T> {
         if let Some(first) = iter.next() {
             iter.fold(first, |a, b| a + b)
         } else {
@@ -126,7 +125,7 @@ impl<T: Add<T, Output = T> + Sum<T>> Sum<Vector3d<T>> for Vector3d<T> {
     }
 }
 impl<'a, T: 'a + Add<T, Output = T> + Sum<T> + Clone> Sum<&'a Vector3d<T>> for Vector3d<T> {
-    fn sum<I: Iterator<Item=&'a Vector3d<T>>>(iter: I) -> Vector3d<T> {
+    fn sum<I: Iterator<Item = &'a Vector3d<T>>>(iter: I) -> Vector3d<T> {
         iter.cloned().sum()
     }
 }
@@ -135,11 +134,14 @@ impl<'a, T: 'a + Add<T, Output = T> + Sum<T> + Clone> Sum<&'a Vector3d<T>> for V
 fn sum_f64() {
     let x: f64 = [0.0, 0.0, 0.1].iter().cloned().sum();
     assert_eq!(x, 0.1f64);
-    let total: Vector3d<f64> = [Vector3d::new(0.0, 0.0, 0.1),
-                                Vector3d::new(0.0, 0.2, 0.0)].iter().cloned().sum();
+    let total: Vector3d<f64> = [Vector3d::new(0.0, 0.0, 0.1), Vector3d::new(0.0, 0.2, 0.0)]
+        .iter()
+        .cloned()
+        .sum();
     assert_eq!(total, Vector3d::new(0.0, 0.2, 0.1));
-    let total: Vector3d<f64> = [Vector3d::new(0.0, 0.0, 0.1),
-                                Vector3d::new(0.0, 0.2, 0.0)].iter().sum();
+    let total: Vector3d<f64> = [Vector3d::new(0.0, 0.0, 0.1), Vector3d::new(0.0, 0.2, 0.0)]
+        .iter()
+        .sum();
     assert_eq!(total, Vector3d::new(0.0, 0.2, 0.1));
 }
 
@@ -152,7 +154,7 @@ impl<T: Neg<Output = T>> Neg for Vector3d<T> {
 }
 
 use std::ops::Mul;
-impl<S: Clone, X, T: Mul<S, Output=X>> Mul<S> for Vector3d<T> {
+impl<S: Clone, X, T: Mul<S, Output = X>> Mul<S> for Vector3d<T> {
     type Output = Vector3d<X>;
     fn mul(self, rhs: S) -> Self::Output {
         Vector3d::new(self.x * rhs.clone(), self.y * rhs.clone(), self.z * rhs)
@@ -160,7 +162,7 @@ impl<S: Clone, X, T: Mul<S, Output=X>> Mul<S> for Vector3d<T> {
 }
 
 use std::ops::Div;
-impl<S: Clone, X, T: Div<S, Output=X>> Div<S> for Vector3d<T> {
+impl<S: Clone, X, T: Div<S, Output = X>> Div<S> for Vector3d<T> {
     type Output = Vector3d<X>;
     fn div(self, rhs: S) -> Self::Output {
         Vector3d::new(self.x / rhs.clone(), self.y / rhs.clone(), self.z / rhs)
@@ -171,25 +173,29 @@ impl<T: Clone> Vector3d<T> {
     /// The cross product of two vectors.  Note that we assume that
     /// the components of both vector types have commutative
     /// multiplication.
-    pub fn cross<U: Clone + Mul<T, Output=X>,
-             X: Add<Output=X> + Sub<Output=X>>(self, rhs: Vector3d<U>) -> Vector3d<X> {
-        Vector3d::new(rhs.z.clone()*self.y.clone() - rhs.y.clone()*self.z.clone(),
-                      rhs.x.clone()*self.z.clone() - rhs.z*self.x.clone(),
-                      rhs.y*self.x - rhs.x.clone()*self.y.clone())
+    pub fn cross<U: Clone + Mul<T, Output = X>, X: Add<Output = X> + Sub<Output = X>>(
+        self,
+        rhs: Vector3d<U>,
+    ) -> Vector3d<X> {
+        Vector3d::new(
+            rhs.z.clone() * self.y.clone() - rhs.y.clone() * self.z.clone(),
+            rhs.x.clone() * self.z.clone() - rhs.z * self.x.clone(),
+            rhs.y * self.x - rhs.x * self.y,
+        )
     }
 }
 
-impl<T: Clone + Mul<T, Output=X>, X: Add<Output=X>> Vector3d<T> {
+impl<T: Clone + Mul<T, Output = X>, X: Add<Output = X>> Vector3d<T> {
     /// The square of the vector.
     pub fn norm2(self) -> X {
-        self.x.clone()*self.x + self.y.clone()*self.y + self.z.clone()*self.z
+        self.x.clone() * self.x + self.y.clone() * self.y + self.z.clone() * self.z
     }
 }
 
 use std::ops::Index;
 impl<T> Index<usize> for Vector3d<T> {
     type Output = T;
-    fn index<'a>(&'a self, index: usize) -> &'a T {
+    fn index(&self, index: usize) -> &T {
         match index {
             0 => &self.x,
             1 => &self.y,
@@ -201,7 +207,7 @@ impl<T> Index<usize> for Vector3d<T> {
 
 use std::ops::IndexMut;
 impl<T> IndexMut<usize> for Vector3d<T> {
-    fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut T {
+    fn index_mut(&mut self, index: usize) -> &mut T {
         match index {
             0 => &mut self.x,
             1 => &mut self.y,
@@ -215,16 +221,18 @@ use std::fmt;
 impl<T: fmt::Display> fmt::Display for Vector3d<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(decimals) = f.precision() {
-            let s = format!("({:.decimals$}, {:.decimals$}, {:.decimals$})",
-                            self.x, self.y, self.z, decimals=decimals);
+            let s = format!(
+                "({:.decimals$}, {:.decimals$}, {:.decimals$})",
+                self.x,
+                self.y,
+                self.z,
+                decimals = decimals
+            );
             if let Some(width) = f.width() {
                 match f.align().unwrap_or(Alignment::Left) {
-                    Alignment::Left =>
-                        write!(f, "{:<width$}", s, width=width),
-                    Alignment::Right =>
-                        write!(f, "{:>width$}", s, width=width),
-                    Alignment::Center =>
-                        write!(f, "{:^width$}", s, width=width),
+                    Alignment::Left => write!(f, "{:<width$}", s, width = width),
+                    Alignment::Right => write!(f, "{:>width$}", s, width = width),
+                    Alignment::Center => write!(f, "{:^width$}", s, width = width),
                 }
             } else {
                 f.write_str(&s)
@@ -238,7 +246,7 @@ impl<T: fmt::Display> fmt::Display for Vector3d<T> {
 
 #[test]
 fn padding_works() {
-    let v = Vector3d::new(0,0,0);
+    let v = Vector3d::new(0, 0, 0);
     assert_eq!(&format!("{}", v), "(0, 0, 0)");
     assert_eq!(&format!("{:10}", v), "(0, 0, 0) ");
     assert_eq!(&format!("{:<10}", v), "(0, 0, 0) ");
@@ -246,7 +254,7 @@ fn padding_works() {
     assert_eq!(&format!("{:^11}", v), " (0, 0, 0) ");
     assert_eq!(&format!("{:>11}", v), "  (0, 0, 0)");
 
-    let v = Vector3d::new(0.,0.,0.);
+    let v = Vector3d::new(0., 0., 0.);
     assert_eq!(&format!("{}", v), "(0, 0, 0)");
     assert_eq!(&format!("{:.2}", v), "(0.00, 0.00, 0.00)");
     assert_eq!(&format!("{:19.2}", v), "(0.00, 0.00, 0.00) ");
